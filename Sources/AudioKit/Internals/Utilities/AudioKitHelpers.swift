@@ -351,22 +351,7 @@ public extension Array where Element == Float {
 public func loadAudioSignal(audioURL: URL) -> (signal: [Float], rate: Double, frameCount: Int)? {
     do {
         let file = try AVAudioFile(forReading: audioURL)
-        let audioFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                        sampleRate: file.fileFormat.sampleRate,
-                                        channels: file.fileFormat.channelCount, interleaved: false)
-        if let format = audioFormat {
-            let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: UInt32(file.length))
-            do {
-                if let buffer = buf {
-                    try file.read(into: buffer)
-                    let floatArray = Array(UnsafeBufferPointer(start: buffer.floatChannelData![0],
-                                                               count: Int(buffer.frameLength)))
-                    return (signal: floatArray, rate: file.fileFormat.sampleRate, frameCount: Int(file.length))
-                }
-            } catch {
-                Log("Error in Load Audio Signal: could not read audio file into buffer", type: .error)
-            }
-        }
+        return file.loadAudioSignal()
     } catch {
         Log("Error in Load Audio Signal: could not read url into audio file", type: .error)
     }

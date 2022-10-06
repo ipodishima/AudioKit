@@ -144,6 +144,31 @@ public extension AVAudioFile {
             }
         }
     }
+
+    /// Load the audio information from a url to an audio file
+    /// Returns the floating point array of values, sample rate, and frame count
+    func loadAudioSignal() -> (signal: [Float], rate: Double, frameCount: Int)? {
+        do {
+            let audioFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                            sampleRate: fileFormat.sampleRate,
+                                            channels: fileFormat.channelCount, interleaved: false)
+            if let format = audioFormat {
+                let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: UInt32(length))
+                do {
+                    if let buffer = buf {
+                        try read(into: buffer)
+                        let floatArray = Array(UnsafeBufferPointer(start: buffer.floatChannelData![0],
+                                                                   count: Int(buffer.frameLength)))
+                        return (signal: floatArray, rate: fileFormat.sampleRate, frameCount: Int(length))
+                    }
+                } catch {
+                    Log("Error in Load Audio Signal: could not read audio file into buffer", type: .error)
+                }
+            }
+        }
+
+        return nil
+    }
 }
 
 public extension AVURLAsset {
